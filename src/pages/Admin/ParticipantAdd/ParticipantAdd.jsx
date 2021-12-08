@@ -1,4 +1,5 @@
 import ParticipantForm from "../../../containers/ParticipantForm/ParticipantForm";
+import "../ParticipantAdd/ParticipantAdd.scss"
 
 const ParticipantAdd = () => {
 
