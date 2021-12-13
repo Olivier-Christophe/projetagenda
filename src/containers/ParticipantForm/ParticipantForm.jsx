@@ -6,12 +6,18 @@ import { Controller, useForm } from "react-hook-form";
 import { useSelector } from 'react-redux';
 import { Autocomplete, Button, TextField } from "@mui/material";
 import { Email } from "@mui/icons-material";
+import './ParticipantForm.scss';
 import PCLoadingButton from '../PCLoadingButton/PCLoadingButton';
+import FonctionParticipant from "../FonctionParticipant/FonctionParticipant";
 
 const ParticipantForm = ({ handleOnSuccess }) => {
 
 
     const validationSchema = yup.object({
+        fonction: yup
+            .string()
+            .max(100, 'maximum 100 caractère')
+            .required('le champ est requis'),
         nomEntreprise: yup
             .string()
             .max(255, 'Maximum 255 ')
@@ -44,6 +50,7 @@ const ParticipantForm = ({ handleOnSuccess }) => {
     })
 
     const defaultValues = {
+        fonction: '',
         nomEntreprise: '',
         siegeSocial: '',
         nom: '',
@@ -52,10 +59,15 @@ const ParticipantForm = ({ handleOnSuccess }) => {
         email: '',
         bce: 0
     };
-    
+
+   
+    const participants = useSelector(state => state.participants.list);
+
     const { control, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues, resolver: yupResolver(validationSchema) });
 
+
     const [isLoading, setIsLoading] = useState(false);
+
     // const onDelete = () => {
     //     if(Participant?.id) {
     //         setIsLoading(true);
@@ -74,48 +86,86 @@ const ParticipantForm = ({ handleOnSuccess }) => {
     // }
 
 
-    const handleOnsubmit = (form) => {
-        form.preventDefault()
-        console.log("form => ", form)
+    const dataSend = data => {
+        console.log("data => ", data)
+        const cleanData = {
+            ...data,
+            fonction: data.fonction,
+            nomEntreprise: data.nomEntreprise,
+            siegeSocial: data.siegeSocial,
+            nom: data.nom,
+            prenom: data.prenom,
+            numTel: data.numTel,
+            email: data.email,
+            bce: data.bce
+        }
+        if (participants?.id) {
+            const updatedParticipant = {
+                ...cleanData,
+                id: participants.id
+            }
+            setIsLoading(true);
+            // api envoie put
 
-    
+        } else {
+            setIsLoading(true);
+            // api envoie post
+        }
+
     }
-
-
-
-
-
-
-
+    useEffect(() => {
+        reset({ ...defaultValues, ...participants, dates: [participants?.startDate, participants?.endDate] });
+    }, [participants]);
 
     return (
-        <form onSubmit={(form) => handleOnsubmit(form)}>
-            <div className="form-group">
-            <Controller name="nomEntreprise"
-                control={control}
-                render={({ field }) =>
-                    <TextField {...field}
-                        label="nomEntreprise"
-                        multiline={true}
-                        fullWidth={true}
-                        rows={3}
-                        error={!!errors.description}
-                        helperText={!!errors.description && errors.description.message} />
+        <form onSubmit={handleSubmit(dataSend => console.log("dataSend => ", dataSend))}>
+            <div className="form-groupe">
+                <Controller
+                    name="fonction"
+                    control={control}
+                    render={({ field }) => <FonctionParticipant {...field} /> }
+                    />
+            </div>
 
-                } /></div>
-                
-             
+            <div className="form-group">
+                <Controller name="nomEntreprise"
+                    control={control}
+                    render={({ field }) =>
+                        <TextField {...field}
+                            label="Nom Entreprise"
+                            required={true}
+                            fullWidth={true}
+                            error={!!errors.nomEntreprise}
+                            helperText={!!errors.nomEntreprise && errors.nomEntreprise.message} />
+
+                    } /></div>
+
+            <div className="form-group">
+                <Controller name="bce"
+                    control={control}
+                    render={({ field }) =>
+                        <TextField {...field}
+                            label="BCE"
+                            required={true}
+                            fullWidth={true}
+                            error={!!errors.bce}
+                            helperText={!!errors.bce && errors.bce.message} />
+
+                    } />
+            </div>
+
             <div className="form-group">
                 <Controller name="siegeSocial"
                     control={control}
                     render={({ field }) =>
                         <TextField {...field}
-                            label="siegeSocial"
+                            label="Siège Social"
                             multiline={true}
+                            required={true}
+                            rows={4}
                             fullWidth={true}
-                            rows={3}
-                            error={!!errors.description}
-                            helperText={!!errors.description && errors.description.message} />
+                            error={!!errors.siegeSocial}
+                            helperText={!!errors.siegeSocial && errors.siegeSocial.message} />
 
                     } />
             </div>
@@ -125,26 +175,24 @@ const ParticipantForm = ({ handleOnSuccess }) => {
                     render={({ field }) =>
                         <TextField {...field}
                             label="Nom"
-                            multiline={true}
+                            required={true}
                             fullWidth={true}
-                            rows={3}
-                            error={!!errors.description}
-                            helperText={!!errors.description && errors.description.message} />
+                            error={!!errors.nom}
+                            helperText={!!errors.nom && errors.nom.message} />
 
                     } />
             </div>
-          
+
             <div className="form-group">
                 <Controller name="prenom"
                     control={control}
                     render={({ field }) =>
                         <TextField {...field}
-                            label="Prenom"
-                            multiline={true}
+                            label="Prénom"
+                            required={true}
                             fullWidth={true}
-                            rows={3}
-                            error={!!errors.description}
-                            helperText={!!errors.description && errors.description.message} />
+                            error={!!errors.prenom}
+                            helperText={!!errors.prenom && errors.prenom.message} />
 
                     } />
             </div>
@@ -153,12 +201,11 @@ const ParticipantForm = ({ handleOnSuccess }) => {
                     control={control}
                     render={({ field }) =>
                         <TextField {...field}
-                            label="NumTel"
-                            multiline={true}
+                            label="Numéro Tel"
                             fullWidth={true}
-                            rows={3}
-                            error={!!errors.description}
-                            helperText={!!errors.description && errors.description.message} />
+                            required={true}
+                            error={!!errors.numTel}
+                            helperText={!!errors.numTel && errors.numTel.message} />
 
                     } />
             </div>
@@ -168,35 +215,21 @@ const ParticipantForm = ({ handleOnSuccess }) => {
                     render={({ field }) =>
                         <TextField {...field}
                             label="email"
-                            multiline={true}
                             fullWidth={true}
-                            rows={3}
-                            error={!!errors.description}
-                            helperText={!!errors.description && errors.description.message} />
+                            required={true}
+                            error={!!errors.email}
+                            helperText={!!errors.email && errors.email.message} />
 
                     } />
             </div>
-            
-            <div className="form-group">
-                <Controller name="bce"
-                    control={control}
-                    render={({ field }) =>
-                        <TextField {...field}
-                            label="bce"
-                            multiline={true}
-                            fullWidth={true}
-                            rows={3}
-                            error={!!errors.description}
-                            helperText={!!errors.description && errors.description.message} />
 
-                    } />
-                </div>
+
             <div className="form-group">
-                <PCLoadingButton disabled={isLoading} type="submit" variant="contained">Sauver</PCLoadingButton>
+                <PCLoadingButton disabled={isLoading} type="submit" variant="contained">Valider</PCLoadingButton>
             </div>
         </form>
-            
-    
+
+
     )
 }
 
